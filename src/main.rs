@@ -1,12 +1,40 @@
 use std::process::Command;
 
 use std::env;
+use std::thread::sleep;
+use std::time::Duration;
 
 fn main() {
     println!("Starting...");
 
     let supervisor_address = env::var("BALENA_SUPERVISOR_ADDRESS").unwrap();
     let supervisor_api_key = env::var("BALENA_SUPERVISOR_API_KEY").unwrap();
+
+    loop {
+        let url = format!("{}/ping", supervisor_address);
+
+        let output = Command::new("curl")
+            .arg("-X")
+            .arg("GET")
+            .arg("-H")
+            .arg("Content-Type: application/json")
+            .arg(url)
+            .output()
+            .expect("failed to execute process");
+
+        let stdout = std::str::from_utf8(&output.stdout).unwrap();
+
+        println!("{}", stdout);
+
+        if stdout.find("OK").is_some() {
+            println!("Supervisor responded to ping");
+            break;
+        }
+
+        println!("Awaiting supervisor...");
+
+        sleep(Duration::from_secs(5));
+    }
 
     let url = format!("{}/v2/journal-logs?apikey={}", supervisor_address, supervisor_api_key);
 
@@ -33,5 +61,5 @@ fn main() {
 
     println!("iptables count {}", count);
 
-    std::thread::sleep(std::time::Duration::from_secs(60 * 60));
+    sleep(Duration::from_secs(60 * 60));
 }
