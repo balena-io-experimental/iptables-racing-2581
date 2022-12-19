@@ -55,6 +55,8 @@ fn main() {
     for line in stdout.lines() {
         if line.find("iptables").is_some() {
             count += 1;
+        } else if line.find("Command returned exit status").is_some() {
+            count += 1;
         }
     }
 
