@@ -54,12 +54,32 @@ fn main() {
     let mut count = 0;
     for line in stdout.lines() {
         if line.find("iptables").is_some() {
-            println!("{}", line);
             count += 1;
         }
     }
 
     println!("iptables count {}", count);
 
-    sleep(Duration::from_secs(60 * 60));
+    if count == 15 {
+        sleep(Duration::from_secs(20));
+
+        println!("Rebooting...");
+
+        let url = format!("{}/v1/reboot?apikey={}", supervisor_address, supervisor_api_key);
+
+        let _ = Command::new("curl")
+                .arg("-X")
+                .arg("POST")
+                .arg("-H")
+                .arg("Content-Type: application/json")
+                .arg(url)
+                .output()
+                .expect("failed to execute process");
+
+        sleep(Duration::from_secs(3 * 60));
+    } else {
+        println!("iptables count does not match");
+
+        sleep(Duration::from_secs(60 * 60 * 12));
+    }
 }
