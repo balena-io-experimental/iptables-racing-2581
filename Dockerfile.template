@@ -8,11 +8,11 @@ RUN cargo build --release
 
 FROM balenalib/%%BALENA_MACHINE_NAME%%-debian:bookworm-run
 
-WORKDIR /usr/src/run
+RUN install_packages iptables
 
-COPY ./start.sh .
+WORKDIR /usr/src/run
 
 COPY --from=builder /usr/src/build/target/release/iptables-racing-2581 .
 
-CMD ["./start.sh"]
+CMD ["./iptables-racing-2581"]
 
