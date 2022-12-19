@@ -1,0 +1,18 @@
+FROM rust as builder
+
+WORKDIR /usr/src/build
+
+COPY . .
+
+RUN cargo build --release
+
+FROM balenalib/%%BALENA_MACHINE_NAME%%-debian:bookworm-run
+
+WORKDIR /usr/src/run
+
+COPY ./start.sh .
+
+COPY --from=builder /usr/src/build/target/release/iptables-racing-2581 .
+
+CMD ["./start.sh"]
+
