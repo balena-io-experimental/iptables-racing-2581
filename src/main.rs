@@ -51,14 +51,27 @@ fn main() {
 
     let stdout = std::str::from_utf8(&output.stdout).unwrap();
 
-    let mut count = 0;
-    for line in stdout.lines() {
+    let mut first = None;
+    let mut last = None;
+    let mut detected = Vec::new();
+    for (i, line) in stdout.lines().enumerate() {
         if line.find("iptables").is_some() {
-            count += 1;
-        } else if line.find("Command returned exit status").is_some() {
-            count += 1;
+            if first.is_none() {
+                first = Some(i);
+            } else {
+                last = Some(i);
+            }
+
+            detected.push(line);
         }
     }
+
+    let count = if first.is_some() || last.is_some() {
+        last.unwrap() - first.unwrap() + 1
+    } else {
+        println!("First or Last not set!");
+        0
+    };
 
     println!("iptables count {}", count);
 
@@ -80,6 +93,10 @@ fn main() {
 
         sleep(Duration::from_secs(3 * 60));
     } else {
+        for line in detected {
+            println!("{}", line);
+        }
+    
         println!("iptables count does not match");
 
         sleep(Duration::from_secs(60 * 60 * 12));
